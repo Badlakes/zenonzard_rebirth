@@ -85,7 +85,7 @@ struct player_info {
 	uint32_t disabled_location{ 0 };
 	uint32_t extra_p_count{ 0 };
 	uint32_t tag_extra_p_count{ 0 };
-	int32_t szone_size{ 6 };
+	int32_t szone_size{ 10 }; // zenonzard alt 00001
 	card_vector list_mzone;
 	card_vector list_szone;
 	card_vector list_main;

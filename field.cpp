@@ -53,13 +53,13 @@ bool tevent::operator< (const tevent& v) const {
 field::field(duel* pd)
 	: pduel(pd) {
 	for (int32_t i = 0; i < 2; ++i) {
-		player[i].list_mzone.resize(7, 0);
-		player[i].list_szone.resize(8, 0);
+		player[i].list_mzone.resize( 5, 0); // zenonzard alt 00001
+		player[i].list_szone.resize(10, 0); // zenonzard alt 00001
 		player[i].list_main.reserve(60);
 		player[i].list_hand.reserve(60);
 		player[i].list_grave.reserve(75);
 		player[i].list_remove.reserve(75);
-		player[i].list_extra.reserve(30);
+		//player[i].list_extra.clear();     // zenonzard alt 00001
 	}
 }
 void field::reload_field_info() {
@@ -88,8 +88,8 @@ void field::reload_field_info() {
 		pduel->write_buffer8((uint8_t)player[playerid].list_hand.size());
 		pduel->write_buffer8((uint8_t)player[playerid].list_grave.size());
 		pduel->write_buffer8((uint8_t)player[playerid].list_remove.size());
-		pduel->write_buffer8((uint8_t)player[playerid].list_extra.size());
-		pduel->write_buffer8((uint8_t)player[playerid].extra_p_count);
+		//pduel->write_buffer8((uint8_t)player[playerid].list_extra.size()); // zenonzard alt 00001
+		//pduel->write_buffer8((uint8_t)player[playerid].extra_p_count);
 	}
 	pduel->write_buffer8((uint8_t)core.current_chain.size());
 	for(const auto& ch : core.current_chain) {
@@ -107,10 +107,10 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 		return;
 	if (!is_location_useable(playerid, location, sequence))
 		return;
-	if(pcard->is_extra_deck_monster() && (location & (LOCATION_HAND | LOCATION_DECK))) {
-		location = LOCATION_EXTRA;
-		pcard->sendto_param.position = POS_FACEDOWN_DEFENSE;
-	}
+	//if(pcard->is_extra_deck_monster() && (location & (LOCATION_HAND | LOCATION_DECK))) { // zenonzard alt 00001
+	//	location = LOCATION_EXTRA;
+	//	pcard->sendto_param.position = POS_FACEDOWN_DEFENSE;
+	//}
 	pcard->current.controler = playerid;
 	pcard->current.location = location;
 	switch (location) {
@@ -165,16 +165,16 @@ void field::add_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t se
 		pcard->current.sequence = (uint8_t)player[playerid].list_remove.size() - 1;
 		break;
 	}
-	case LOCATION_EXTRA: {
-		if(player[playerid].extra_p_count == 0 || (pcard->data.type & TYPE_PENDULUM) && (pcard->sendto_param.position & POS_FACEUP))
-			player[playerid].list_extra.push_back(pcard);
-		else
-			player[playerid].list_extra.insert(player[playerid].list_extra.end() - player[playerid].extra_p_count, pcard);
-		if((pcard->data.type & TYPE_PENDULUM) && (pcard->sendto_param.position & POS_FACEUP))
-			++player[playerid].extra_p_count;
-		reset_sequence(playerid, LOCATION_EXTRA);
-		break;
-	}
+	//case LOCATION_EXTRA: { // zenonzard alt 00001
+	//	if(player[playerid].extra_p_count == 0 || (pcard->data.type & TYPE_PENDULUM) && (pcard->sendto_param.position & POS_FACEUP))
+	//		player[playerid].list_extra.push_back(pcard);
+	//	else
+	//		player[playerid].list_extra.insert(player[playerid].list_extra.end() - player[playerid].extra_p_count, pcard);
+	//	if((pcard->data.type & TYPE_PENDULUM) && (pcard->sendto_param.position & POS_FACEUP))
+	//		++player[playerid].extra_p_count;
+	//	reset_sequence(playerid, LOCATION_EXTRA);
+	//	break;
+	//}
 	}
 	if(pzone)
 		pcard->current.pzone = true;
@@ -219,13 +219,13 @@ void field::remove_card(card* pcard) {
 		player[playerid].list_remove.erase(player[playerid].list_remove.begin() + pcard->current.sequence);
 		reset_sequence(playerid, LOCATION_REMOVED);
 		break;
-	case LOCATION_EXTRA:
-		player[playerid].list_extra.erase(player[playerid].list_extra.begin() + pcard->current.sequence);
-		reset_sequence(playerid, LOCATION_EXTRA);
-		if((pcard->data.type & TYPE_PENDULUM) && (pcard->current.position & POS_FACEUP))
-			--player[playerid].extra_p_count;
-		break;
-	}
+	//case LOCATION_EXTRA: // zenonzard alt 00001
+	//	player[playerid].list_extra.erase(player[playerid].list_extra.begin() + pcard->current.sequence);
+	//	reset_sequence(playerid, LOCATION_EXTRA);
+	//	if((pcard->data.type & TYPE_PENDULUM) && (pcard->current.position & POS_FACEUP))
+	//		--player[playerid].extra_p_count;
+	//	break;
+	//}
 	pcard->cancel_field_effect();
 	refresh_player_info(playerid);
 	pcard->previous.controler = pcard->current.controler;
@@ -242,10 +242,10 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 		return;
 	uint8_t preplayer = pcard->current.controler;
 	uint8_t presequence = pcard->current.sequence;
-	if(pcard->is_extra_deck_monster() && (location & (LOCATION_HAND | LOCATION_DECK))) {
-		location = LOCATION_EXTRA;
-		pcard->sendto_param.position = POS_FACEDOWN_DEFENSE;
-	}
+	//if(pcard->is_extra_deck_monster() && (location & (LOCATION_HAND | LOCATION_DECK))) { // zenonzard alt 00001
+	//	location = LOCATION_EXTRA;
+	//	pcard->sendto_param.position = POS_FACEDOWN_DEFENSE;
+	//}
 	if (pcard->current.location) {
 		if (pcard->current.location == location && pcard->current.pzone == !!pzone) {
 			if (pcard->current.location == LOCATION_DECK) {
@@ -348,22 +348,22 @@ void field::move_card(uint8_t playerid, card* pcard, uint8_t location, uint8_t s
 					pduel->write_buffer8(MSG_MOVE);
 					pduel->write_buffer32(pcard->data.code);
 					pduel->write_buffer32(pcard->get_info_location());
-					player[pcard->current.controler].list_extra.erase(player[pcard->current.controler].list_extra.begin() + pcard->current.sequence);
-					player[pcard->current.controler].list_extra.push_back(pcard);
-					reset_sequence(pcard->current.controler, LOCATION_EXTRA);
+					//player[pcard->current.controler].list_extra.erase(player[pcard->current.controler].list_extra.begin() + pcard->current.sequence); // zenonzard alt 00001
+					//player[pcard->current.controler].list_extra.push_back(pcard);
+					//reset_sequence(pcard->current.controler, LOCATION_EXTRA);
 					pduel->write_buffer32(pcard->get_info_location());
 					pduel->write_buffer32(pcard->current.reason);
 				}
 				return;
 			}
 		} else {
-			if((pcard->data.type & TYPE_PENDULUM) && (location == LOCATION_GRAVE)
-			        && pcard->is_capable_send_to_extra(playerid)
-			        && (((pcard->current.location == LOCATION_MZONE) && !pcard->is_status(STATUS_SUMMON_DISABLED))
-			        || ((pcard->current.location == LOCATION_SZONE) && !pcard->is_status(STATUS_ACTIVATE_DISABLED)))) {
-				location = LOCATION_EXTRA;
-				pcard->sendto_param.position = POS_FACEUP_DEFENSE;
-			}
+			//if((pcard->data.type & TYPE_PENDULUM) && (location == LOCATION_GRAVE) // zenonzard alt 00001
+			//        && pcard->is_capable_send_to_extra(playerid)
+			//        && (((pcard->current.location == LOCATION_MZONE) && !pcard->is_status(STATUS_SUMMON_DISABLED))
+			//        || ((pcard->current.location == LOCATION_SZONE) && !pcard->is_status(STATUS_ACTIVATE_DISABLED)))) {
+			//	location = LOCATION_EXTRA;
+			//	pcard->sendto_param.position = POS_FACEUP_DEFENSE;
+			//}
 			remove_card(pcard);
 		}
 	}
@@ -514,8 +514,8 @@ const card_vector* field::get_field_vector(uint8_t playerid, uint8_t location) c
 		return &player[playerid].list_grave;
 	case LOCATION_REMOVED:
 		return &player[playerid].list_remove;
-	case LOCATION_EXTRA:
-		return &player[playerid].list_extra;
+	//case LOCATION_EXTRA: // zenonzard alt 00001
+	//	return &player[playerid].list_extra;
 	default:
 		return nullptr;
 	}
@@ -529,17 +529,17 @@ card* field::get_field_card(uint8_t playerid, uint32_t general_location, uint8_t
 	case LOCATION_HAND:
 	case LOCATION_GRAVE:
 	case LOCATION_REMOVED:
-	case LOCATION_EXTRA: {
-		auto ptr = get_field_vector(playerid, general_location);
-		if (!ptr)
-			return nullptr;
-		auto& container = *ptr;
-		if (sequence < container.size())
-			return container[sequence];
-		else
-			return nullptr;
-		break;
-	}
+	//case LOCATION_EXTRA: { // zenonzard alt 00001
+	//	auto ptr = get_field_vector(playerid, general_location);
+	//	if (!ptr)
+	//		return nullptr;
+	//	auto& container = *ptr;
+	//	if (sequence < container.size())
+	//		return container[sequence];
+	//	else
+	//		return nullptr;
+	//	break;
+	//}
 	case LOCATION_SZONE: {
 		if(sequence < player[playerid].szone_size)
 			return player[playerid].list_szone[sequence];
@@ -613,9 +613,9 @@ int32_t field::is_location_useable(uint8_t playerid, uint32_t general_location, 
 * @return usable count in the MZONE or SZONE(0~4) of `playerid` (can be negative)
 */
 int32_t field::get_useable_count(card* pcard, uint8_t playerid, uint8_t location, uint8_t uplayer, uint32_t reason, uint32_t zone, uint32_t* list) {
-	if(location == LOCATION_MZONE && pcard && pcard->current.location == LOCATION_EXTRA)
-		return get_useable_count_fromex(pcard, playerid, uplayer, zone, list);
-	else
+	//if(location == LOCATION_MZONE && pcard && pcard->current.location == LOCATION_EXTRA) // zenonzard alt 00001
+	//	return get_useable_count_fromex(pcard, playerid, uplayer, zone, list);
+	//else
 		return get_useable_count_other(pcard, playerid, location, uplayer, reason, zone, list);
 }
 /**
@@ -627,7 +627,7 @@ int32_t field::get_useable_count_fromex(card* pcard, uint8_t playerid, uint8_t u
 	if(!pcard) {
 		use_temp_card = true;
 		pcard = temp_card;
-		pcard->current.location = LOCATION_EXTRA;
+		//pcard->current.location = LOCATION_EXTRA; // zenonzard alt 00001
 	}
 	int32_t useable_count = 0;
 	if(core.duel_rule >= NEW_MASTER_RULE)
@@ -643,9 +643,9 @@ int32_t field::get_useable_count_fromex(card* pcard, uint8_t playerid, uint8_t u
 * For LOCATION_MZONE, "available" means not used, not disabled, satisfying EFFECT_MUST_USE_MZONE.
 */
 int32_t field::get_spsummonable_count(card* pcard, uint8_t playerid, uint32_t zone, uint32_t* list) {
-	if(pcard->current.location == LOCATION_EXTRA)
-		return get_spsummonable_count_fromex(pcard, playerid, playerid, zone, list);
-	else
+	//if(pcard->current.location == LOCATION_EXTRA) // zenonzard alt 00001
+	//	return get_spsummonable_count_fromex(pcard, playerid, playerid, zone, list);
+	//else
 		return get_tofield_count(pcard, playerid, LOCATION_MZONE, playerid, LOCATION_REASON_TOFIELD, zone, list);
 }
 /**
@@ -657,7 +657,7 @@ int32_t field::get_spsummonable_count_fromex(card* pcard, uint8_t playerid, uint
 	if(!pcard) {
 		use_temp_card = true;
 		pcard = temp_card;
-		pcard->current.location = LOCATION_EXTRA;
+		//pcard->current.location = LOCATION_EXTRA; // zenonzard alt 00001
 	}
 	int32_t spsummonable_count = 0;
 	if(core.duel_rule >= NEW_MASTER_RULE)
@@ -933,9 +933,9 @@ void field::get_cards_in_zone(card_set* cset, uint32_t zone, int32_t playerid, i
 	}
 }
 void field::shuffle(uint8_t playerid, uint8_t location) {
-	if(!(location & (LOCATION_HAND | LOCATION_DECK | LOCATION_EXTRA)))
-		return;
-	card_vector& svector = (location == LOCATION_HAND) ? player[playerid].list_hand : (location == LOCATION_DECK) ? player[playerid].list_main : player[playerid].list_extra;
+	//if(!(location & (LOCATION_HAND | LOCATION_DECK | LOCATION_EXTRA))) // zenonzard alt 00001
+	//	return;
+	//card_vector& svector = (location == LOCATION_HAND) ? player[playerid].list_hand : (location == LOCATION_DECK) ? player[playerid].list_main : player[playerid].list_extra; // zenonzard alt 00001
 	if(svector.size() == 0)
 		return;
 	if(location == LOCATION_HAND) {
@@ -950,14 +950,14 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 	}
 	if(location == LOCATION_HAND || !(core.duel_options & DUEL_PSEUDO_SHUFFLE)) {
 		int32_t s = (int32_t)svector.size();
-		if(location == LOCATION_EXTRA)
-			s = s - (int32_t)player[playerid].extra_p_count;
+		//if(location == LOCATION_EXTRA) // zenonzard alt 00001
+		//	s = s - (int32_t)player[playerid].extra_p_count;
 		if(s > 1) {
 			pduel->random.shuffle_vector(svector, 0, s, pduel->rng_version);
 			reset_sequence(playerid, location);
 		}
 	}
-	if(location == LOCATION_HAND || location == LOCATION_EXTRA) {
+	if(location == LOCATION_HAND /*|| location == LOCATION_EXTRA*/) { // zenonzard alt 00001
 		pduel->write_buffer8((location == LOCATION_HAND) ? MSG_SHUFFLE_HAND : MSG_SHUFFLE_EXTRA);
 		pduel->write_buffer8(playerid);
 		pduel->write_buffer8((uint8_t)svector.size());
@@ -1008,10 +1008,10 @@ void field::reset_sequence(uint8_t playerid, uint8_t location) {
 		for(auto& pcard : player[playerid].list_hand)
 			pcard->current.sequence = i++;
 		break;
-	case LOCATION_EXTRA:
-		for(auto& pcard : player[playerid].list_extra)
-			pcard->current.sequence = i++;
-		break;
+	//case LOCATION_EXTRA: // zenonzard alt 00001
+	//	for(auto& pcard : player[playerid].list_extra)
+	//		pcard->current.sequence = i++;
+	//	break;
 	case LOCATION_GRAVE:
 		for(auto& pcard : player[playerid].list_grave)
 			pcard->current.sequence = i++;
@@ -1067,7 +1067,7 @@ void field::swap_deck_and_grave(uint8_t playerid) {
 	}
 	for(auto& pcard : ex) {
 		pcard->current.position = POS_FACEDOWN_DEFENSE;
-		pcard->current.location = LOCATION_EXTRA;
+		//pcard->current.location = LOCATION_EXTRA; // zenonzard alt 00001
 		pcard->current.reason = REASON_EFFECT;
 		pcard->current.reason_effect = core.reason_effect;
 		pcard->current.reason_player = core.reason_player;
@@ -1076,10 +1076,10 @@ void field::swap_deck_and_grave(uint8_t playerid) {
 		pcard->reset(RESET_TODECK, RESET_EVENT);
 		pcard->set_status(STATUS_PROC_COMPLETE, FALSE);
 	}
-	player[playerid].list_extra.insert(player[playerid].list_extra.end() - player[playerid].extra_p_count, ex.begin(), ex.end());
+	//player[playerid].list_extra.insert(player[playerid].list_extra.end() - player[playerid].extra_p_count, ex.begin(), ex.end()); // zenonzard alt 00001
 	reset_sequence(playerid, LOCATION_GRAVE);
 	reset_sequence(playerid, LOCATION_DECK);
-	reset_sequence(playerid, LOCATION_EXTRA);
+	//reset_sequence(playerid, LOCATION_EXTRA); // zenonzard alt 00001
 	pduel->write_buffer8(MSG_SWAP_GRAVE_DECK);
 	pduel->write_buffer8(playerid);
 	shuffle(playerid, LOCATION_DECK);
@@ -1129,21 +1129,21 @@ void field::tag_swap(uint8_t playerid) {
 		pcard->apply_field_effect();
 		pcard->enable_field_effect(true);
 	}
-	//extra
-	for(auto& pcard : player[playerid].list_extra) {
-		pcard->enable_field_effect(false);
-		pcard->cancel_field_effect();
-	}
-	std::swap(player[playerid].list_extra, player[playerid].tag_list_extra);
-	std::swap(player[playerid].extra_p_count, player[playerid].tag_extra_p_count);
-	for(auto& pcard : player[playerid].list_extra) {
-		pcard->apply_field_effect();
-		pcard->enable_field_effect(true);
-	}
+	//extra // zenonzard alt 00001
+	//for(auto& pcard : player[playerid].list_extra) {
+	//	pcard->enable_field_effect(false);
+	//	pcard->cancel_field_effect();
+	//}
+	//std::swap(player[playerid].list_extra, player[playerid].tag_list_extra);
+	//std::swap(player[playerid].extra_p_count, player[playerid].tag_extra_p_count);
+	//for(auto& pcard : player[playerid].list_extra) {
+	//	pcard->apply_field_effect();
+	//	pcard->enable_field_effect(true);
+	//}
 	pduel->write_buffer8(MSG_TAG_SWAP);
 	pduel->write_buffer8(playerid);
 	pduel->write_buffer8((uint8_t)player[playerid].list_main.size());
-	pduel->write_buffer8((uint8_t)player[playerid].list_extra.size());
+	//pduel->write_buffer8((uint8_t)player[playerid].list_extra.size()); // zenonzard alt 00001
 	pduel->write_buffer8((uint8_t)player[playerid].extra_p_count);
 	pduel->write_buffer8((uint8_t)player[playerid].list_hand.size());
 	if(core.deck_reversed && player[playerid].list_main.size())
@@ -1152,8 +1152,8 @@ void field::tag_swap(uint8_t playerid) {
 		pduel->write_buffer32(0);
 	for(auto& pcard : player[playerid].list_hand)
 		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
-	for(auto& pcard : player[playerid].list_extra)
-		pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
+	//for(auto& pcard : player[playerid].list_extra) // zenonzard alt 00001
+	//	pduel->write_buffer32(pcard->data.code | (pcard->is_position(POS_FACEUP) ? 0x80000000 : 0));
 }
 void field::add_effect(effect* peffect, uint8_t owner_player) {
 	if (!peffect)
@@ -1397,8 +1397,8 @@ void field::filter_affected_cards(effect* peffect, card_set* cset) {
 			cvec.push_back(&player[self].list_hand);
 		if(range & LOCATION_DECK)
 			cvec.push_back(&player[self].list_main);
-		if(range & LOCATION_EXTRA)
-			cvec.push_back(&player[self].list_extra);
+		//if(range & LOCATION_EXTRA) // zenonzard alt 00001
+		//	cvec.push_back(&player[self].list_extra);
 		range = peffect->o_range;
 		self = 1 - self;
 	}
@@ -1430,8 +1430,8 @@ void field::filter_inrange_cards(effect* peffect, card_set* cset) {
 			cvec.push_back(&player[self].list_hand);
 		if(range & LOCATION_DECK)
 			cvec.push_back(&player[self].list_main);
-		if(range & LOCATION_EXTRA)
-			cvec.push_back(&player[self].list_extra);
+		//if(range & LOCATION_EXTRA) // zenonzard alt 00001
+		//	cvec.push_back(&player[self].list_extra);
 		range = peffect->o_range;
 		self = 1 - self;
 	}
@@ -1537,21 +1537,21 @@ int32_t field::filter_matching_card(lua_State* L, int32_t findex, uint8_t self, 
 				}
 			}
 		}
-		if(location & LOCATION_EXTRA) {
-			for(auto cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit) {
-				if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
-				        && pduel->lua->check_filter(L, *cit, findex, extraargs)
-				        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
-					if(pret) {
-						*pret = *cit;
-						return TRUE;
-					}
-					result.insert(*cit);
-					if(fcount && (int32_t)result.size() >= fcount)
-						return TRUE;
-				}
-			}
-		}
+		//if(location & LOCATION_EXTRA) { // zenonzard alt 00001
+		//	for(auto cit = player[self].list_extra.rbegin(); cit != player[self].list_extra.rend(); ++cit) {
+		//		if(*cit != pexception && !(pexgroup && pexgroup->has_card(*cit))
+		//		        && pduel->lua->check_filter(L, *cit, findex, extraargs)
+		//		        && (!is_target || (*cit)->is_capable_be_effect_target(core.reason_effect, core.reason_player))) {
+		//			if(pret) {
+		//				*pret = *cit;
+		//				return TRUE;
+		//			}
+		//			result.insert(*cit);
+		//			if(fcount && (int32_t)result.size() >= fcount)
+		//				return TRUE;
+		//		}
+		//	}
+		//}
 		if(location & LOCATION_HAND) {
 			for(auto& pcard : player[self].list_hand) {
 				if(pcard != pexception && !(pexgroup && pexgroup->has_card(pcard))
@@ -1645,9 +1645,9 @@ int32_t field::filter_field_card(uint8_t self, uint32_t location1, uint32_t loca
 		if(location & LOCATION_DECK) {
 			result.insert(player[self].list_main.rbegin(), player[self].list_main.rend());
 		}
-		if(location & LOCATION_EXTRA) {
-			result.insert(player[self].list_extra.rbegin(), player[self].list_extra.rend());
-		}
+		//if(location & LOCATION_EXTRA) { // zenonzard alt 00001
+		//	result.insert(player[self].list_extra.rbegin(), player[self].list_extra.rend());
+		//}
 		if(location & LOCATION_GRAVE) {
 			result.insert(player[self].list_grave.rbegin(), player[self].list_grave.rend());
 		}
@@ -1860,10 +1860,10 @@ void field::get_ritual_material(uint8_t playerid, effect* peffect, card_set* mat
 				&& pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL) && pcard->is_removeable(playerid, POS_FACEUP, REASON_EFFECT)
 				&& (no_level || pcard->get_level() > 0 || pcard->is_affected_by_effect(EFFECT_RITUAL_LEVEL_EX)))
 			material->insert(pcard);
-	for(auto& pcard : player[playerid].list_extra)
-		if(pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL)
-				&& (no_level || pcard->get_level() > 0 || pcard->is_affected_by_effect(EFFECT_RITUAL_LEVEL_EX)))
-			material->insert(pcard);
+	//for(auto& pcard : player[playerid].list_extra)    // zenonzard alt 00001
+	//	if(pcard->is_affected_by_effect(EFFECT_EXTRA_RITUAL_MATERIAL)
+	//			&& (no_level || pcard->get_level() > 0 || pcard->is_affected_by_effect(EFFECT_RITUAL_LEVEL_EX)))
+	//		material->insert(pcard);
 }
 void field::get_fusion_material(uint8_t playerid, card_set* material_all, card_set* material_base, uint32_t location) {
 	if(location & LOCATION_MZONE) {
@@ -1896,11 +1896,11 @@ void field::get_fusion_material(uint8_t playerid, card_set* material_all, card_s
 				material_base->insert(pcard);
 		}
 	}
-	if(location & LOCATION_EXTRA) {
-		for(auto& pcard : player[playerid].list_extra) {
-			if(pcard->data.type & TYPE_MONSTER)
-				material_base->insert(pcard);
-		}
+	//if(location & LOCATION_EXTRA) { // zenonzard alt 00001
+	//	for(auto& pcard : player[playerid].list_extra) {
+	//		if(pcard->data.type & TYPE_MONSTER)
+	//			material_base->insert(pcard);
+	//	}
 	}
 	if(location & LOCATION_SZONE) {
 		for(auto& pcard : player[playerid].list_szone) {
@@ -1931,8 +1931,8 @@ void field::ritual_release(const card_set& material) {
 	for(auto& pcard : material) {
 		if(pcard->current.location == LOCATION_GRAVE)
 			rem.insert(pcard);
-		else if(pcard->current.location == LOCATION_OVERLAY || pcard->current.location == LOCATION_EXTRA)
-			tgy.insert(pcard);
+		//else if(pcard->current.location == LOCATION_OVERLAY || pcard->current.location == LOCATION_EXTRA) // zenonzard alt 00001
+		//	tgy.insert(pcard);
 		else
 			rel.insert(pcard);
 	}
@@ -3625,10 +3625,10 @@ int32_t field::check_trigger_effect(const chain& ch) const {
 		if(peffect->type & EFFECT_TYPE_FIELD)
 			return phandler->is_has_relation(ch);
 		else {
-			if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
+			if((ch.triggering_location & (LOCATION_DECK | LOCATION_HAND /*| LOCATION_EXTRA*/)) // zenonzard alt 00001
 				&& (ch.triggering_position & POS_FACEDOWN))
 				return TRUE;
-			if(!(phandler->current.location & (LOCATION_DECK | LOCATION_HAND | LOCATION_EXTRA))
+			if(!(phandler->current.location & (LOCATION_DECK | LOCATION_HAND /*| LOCATION_EXTRA*/)) // zenonzard alt 00001
 				|| phandler->is_position(POS_FACEUP))
 				return TRUE;
 			return FALSE;
