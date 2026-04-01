@@ -49,6 +49,8 @@ PROCESSOR_WAITING = 0x10000000
 # ── Download automático ───────────────────────────────────────────────────────
 
 def ensure_dll():
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    DLL_PATH   = os.path.join(SCRIPT_DIR, "ocgcore.dll")
     if os.path.exists(DLL_PATH):
         print(f"[DLL] Encontrada: {DLL_PATH}")
         return
@@ -132,8 +134,15 @@ def message_handler(pduel, msg_type: int) -> int:
 # ── Carrega DLL ───────────────────────────────────────────────────────────────
 
 def load_dll(path: str):
+    abs_path = os.path.abspath(path)
+    dll_dir  = os.path.dirname(abs_path)
+
+    # Diz ao Windows onde procurar dependências da DLL
+    if hasattr(os, "add_dll_directory"):
+        os.add_dll_directory(dll_dir)
+
     try:
-        dll = ctypes.CDLL(path)
+        dll = ctypes.CDLL(abs_path)
     except OSError as e:
         print(f"[ERRO] Não conseguiu carregar a DLL: {e}")
         sys.exit(1)
