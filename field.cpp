@@ -1903,7 +1903,7 @@ void field::get_fusion_material(uint8_t playerid, card_set* material_all, card_s
 	//		if(pcard->data.type & TYPE_MONSTER)
 	//			material_base->insert(pcard);
 	//	}
-	}
+	//}
 	if(location & LOCATION_SZONE) {
 		for(auto& pcard : player[playerid].list_szone) {
 			if(pcard && pcard->data.type & TYPE_MONSTER && !pcard->is_treated_as_not_on_field())
