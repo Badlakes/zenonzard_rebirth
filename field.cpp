@@ -529,17 +529,17 @@ card* field::get_field_card(uint8_t playerid, uint32_t general_location, uint8_t
 	case LOCATION_HAND:
 	case LOCATION_GRAVE:
 	case LOCATION_REMOVED:
-	//case LOCATION_EXTRA: { // zenonzard alt 00001
-	//	auto ptr = get_field_vector(playerid, general_location);
-	//	if (!ptr)
-	//		return nullptr;
-	//	auto& container = *ptr;
-	//	if (sequence < container.size())
-	//		return container[sequence];
-	//	else
-	//		return nullptr;
-	//	break;
-	//}
+		//case LOCATION_EXTRA: { // zenonzard alt 00002
+		auto ptr = get_field_vector(playerid, general_location);
+		if (!ptr)
+			return nullptr;
+		auto& container = *ptr;
+		if (sequence < container.size())
+			return container[sequence];
+		else
+			return nullptr;
+		break;
+	}
 	case LOCATION_SZONE: {
 		if(sequence < player[playerid].szone_size)
 			return player[playerid].list_szone[sequence];
@@ -933,9 +933,11 @@ void field::get_cards_in_zone(card_set* cset, uint32_t zone, int32_t playerid, i
 	}
 }
 void field::shuffle(uint8_t playerid, uint8_t location) {
-	//if(!(location & (LOCATION_HAND | LOCATION_DECK | LOCATION_EXTRA))) // zenonzard alt 00001
-	//	return;
-	//card_vector& svector = (location == LOCATION_HAND) ? player[playerid].list_hand : (location == LOCATION_DECK) ? player[playerid].list_main : player[playerid].list_extra; // zenonzard alt 00001
+	if(!(location & (LOCATION_HAND | LOCATION_DECK))) // zenonzard alt 00002
+		return;
+	card_vector& svector = (location == LOCATION_HAND) 
+		? player[playerid].list_hand : (location == LOCATION_DECK) 
+		: player[playerid].list_main; // zenonzard alt 00002
 	if(svector.size() == 0)
 		return;
 	if(location == LOCATION_HAND) {
@@ -1144,7 +1146,7 @@ void field::tag_swap(uint8_t playerid) {
 	pduel->write_buffer8(playerid);
 	pduel->write_buffer8((uint8_t)player[playerid].list_main.size());
 	//pduel->write_buffer8((uint8_t)player[playerid].list_extra.size()); // zenonzard alt 00001
-	pduel->write_buffer8((uint8_t)player[playerid].extra_p_count);
+	//pduel->write_buffer8((uint8_t)player[playerid].extra_p_count); // zenonzard alt 00002
 	pduel->write_buffer8((uint8_t)player[playerid].list_hand.size());
 	if(core.deck_reversed && player[playerid].list_main.size())
 		pduel->write_buffer32(player[playerid].list_main.back()->data.code);
