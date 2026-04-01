@@ -225,7 +225,7 @@ void field::remove_card(card* pcard) {
 	//	if((pcard->data.type & TYPE_PENDULUM) && (pcard->current.position & POS_FACEUP))
 	//		--player[playerid].extra_p_count;
 	//	break;
-	//}
+	} // zenonzard alt 00001 correction
 	pcard->cancel_field_effect();
 	refresh_player_info(playerid);
 	pcard->previous.controler = pcard->current.controler;
@@ -528,8 +528,7 @@ card* field::get_field_card(uint8_t playerid, uint32_t general_location, uint8_t
 	case LOCATION_DECK:
 	case LOCATION_HAND:
 	case LOCATION_GRAVE:
-	case LOCATION_REMOVED:
-		//case LOCATION_EXTRA: { // zenonzard alt 00002
+	case LOCATION_REMOVED: {  //case LOCATION_EXTRA: { // zenonzard alt 00002
 		auto ptr = get_field_vector(playerid, general_location);
 		if (!ptr)
 			return nullptr;
@@ -937,7 +936,7 @@ void field::shuffle(uint8_t playerid, uint8_t location) {
 		return;
 	card_vector& svector = (location == LOCATION_HAND) 
 		? player[playerid].list_hand : (location == LOCATION_DECK) 
-		: player[playerid].list_main; // zenonzard alt 00002
+		? player[playerid].list_main : player[playerid].list_main; // zenonzard alt 00002 correction
 	if(svector.size() == 0)
 		return;
 	if(location == LOCATION_HAND) {
