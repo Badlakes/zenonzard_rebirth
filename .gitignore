@@ -4,3 +4,5 @@
 /temp/
 /premake-5/
 /premake5.exe
+ocgcore.dll
+libocgcore.so
