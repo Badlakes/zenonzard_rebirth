@@ -53,8 +53,8 @@ inline bool check_playerid(int32_t playerid) {
 #define LOCATION_EXTRA		0x40U
 #define LOCATION_OVERLAY	0x80U
 #define LOCATION_ONFIELD	(LOCATION_MZONE | LOCATION_SZONE)
-//#define LOCATION_FZONE		0x100U 
-//#define LOCATION_PZONE		0x200U
+#define LOCATION_FZONE		0x100U // zenonzard alt 00003 || manter defs
+#define LOCATION_PZONE		0x200U // zenonzard alt 00003 || manter defs
 //For redirect
 #define LOCATION_DECKBOT	0x10001		//Return to deck bottom
 #define LOCATION_DECKSHF	0x20001		//Return to deck and shuffle
